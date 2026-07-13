@@ -1,18 +1,33 @@
-import admin from "firebase-admin";
-import fs from "fs";
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import fetch from "node-fetch";
 
-dotenv.config();
-const serviceAccount = JSON.parse(
-    fs.readFileSync("/etc/secrets/serviceAccountKey.json", "utf8")
-);
+import admin from "firebase-admin";
+import fs from "fs";
 
-admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount)
-});
+dotenv.config();
+
+let serviceAccount;
+
+try {
+
+    serviceAccount = JSON.parse(
+        fs.readFileSync("/etc/secrets/serviceAccountKey.json", "utf8")
+    );
+
+    admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount)
+    });
+
+    console.log("✅ Firebase Admin Loaded");
+
+} catch (error) {
+
+    console.log("❌ Firebase Admin Error");
+    console.log(error);
+
+}
 
 const app = express();
 
@@ -21,8 +36,10 @@ app.use(express.json());
 
 const otpStore = {};
 
-console.log("API =", process.env.BREVO_API_KEY ? "Loaded" : "Missing");
-console.log("EMAIL =", process.env.BREVO_SENDER_EMAIL);
+const verifiedUsers = {};
+
+console.log("BREVO API =", process.env.BREVO_API_KEY ? "Loaded" : "Missing");
+console.log("BREVO EMAIL =", process.env.BREVO_SENDER_EMAIL ? "Loaded" : "Missing");
 
 app.get("/", (req, res) => {
     res.send("MG E-Sport OTP Server Running ✅");
