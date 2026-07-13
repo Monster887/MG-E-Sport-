@@ -1,1 +1,16 @@
-
+{
+  "name": "mg-esport-otp",
+  "version": "1.0.0",
+  "description": "MG E-Sport OTP Server",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "@getbrevo/brevo": "^2.0.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.1",
+    "express": "^4.19.2"
+  }
+}
