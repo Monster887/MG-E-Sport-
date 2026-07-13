@@ -1,9 +1,18 @@
+import admin from "firebase-admin";
+import fs from "fs";
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import fetch from "node-fetch";
 
 dotenv.config();
+const serviceAccount = JSON.parse(
+    fs.readFileSync("/etc/secrets/serviceAccountKey.json", "utf8")
+);
+
+admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount)
+});
 
 const app = express();
 
