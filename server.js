@@ -5,6 +5,9 @@ import Brevo from "@getbrevo/brevo";
 
 dotenv.config();
 
+console.log("API =", process.env.BREVO_API_KEY);
+console.log("EMAIL =", process.env.BREVO_SENDER_EMAIL);
+
 const app = express();
 
 app.use(cors());
