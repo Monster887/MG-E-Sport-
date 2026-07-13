@@ -1,24 +1,17 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import Brevo from "@getbrevo/brevo";
+import fetch from "node-fetch";
 
 dotenv.config();
-
-console.log("API =", process.env.BREVO_API_KEY);
-console.log("EMAIL =", process.env.BREVO_SENDER_EMAIL);
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
-const apiInstance = new Brevo.TransactionalEmailsApi();
-
-apiInstance.setApiKey(
-    Brevo.TransactionalEmailsApiApiKeys.apiKey,
-    process.env.BREVO_API_KEY
-);
+console.log("API =", process.env.BREVO_API_KEY ? "Loaded" : "Missing");
+console.log("EMAIL =", process.env.BREVO_SENDER_EMAIL);
 
 app.get("/", (req, res) => {
     res.send("MG E-Sport OTP Server Running ✅");
@@ -30,84 +23,65 @@ app.post("/send-otp", async (req, res) => {
 
         const { email, otp } = req.body;
 
-        let sendSmtpEmail = new Brevo.SendSmtpEmail();
-
-        sendSmtpEmail.subject = "MG E-Sport OTP Verification";
-
-        sendSmtpEmail.sender = {
-            name: "MG E-Sport",
-            email: process.env.BREVO_SENDER_EMAIL
-        };
-
-        sendSmtpEmail.to = [
+        const response = await fetch(
+            "https://api.brevo.com/v3/smtp/email",
             {
-                email: email
+                method: "POST",
+                headers: {
+                    "accept": "application/json",
+                    "content-type": "application/json",
+                    "api-key": process.env.BREVO_API_KEY
+                },
+                body: JSON.stringify({
+
+                    sender: {
+                        name: "MG E-Sport",
+                        email: process.env.BREVO_SENDER_EMAIL
+                    },
+
+                    to: [
+                        {
+                            email: email
+                        }
+                    ],
+
+                    subject: "MG E-Sport OTP Verification",
+
+                    htmlContent: `
+                    <h2>MG E-Sport</h2>
+                    <p>Your OTP is:</p>
+                    <h1 style="color:#6f00ff;">${otp}</h1>
+                    <p>This OTP is valid for 5 minutes.</p>
+                    `
+
+                })
             }
-        ];
+        );
 
-        sendSmtpEmail.htmlContent = `
-        <h2>MG E-Sport</h2>
-        <p>Your OTP is:</p>
-        <h1>${otp}</h1>
-        <p>This OTP is valid for 5 minutes.</p>
-        `;
+        const result = await response.json();
 
-        await apiInstance.sendTransacEmail(sendSmtpEmail);
+        console.log("BREVO RESPONSE:", result);
 
-        res.json({
-            success: true
-        });
+        if (response.ok) {
+
+            return res.json({
+                success: true
+            });
+
+        } else {
+
+            return res.status(500).json({
+                success: false,
+                error: result
+            });
+
+        }
 
     } catch (err) {
 
-     console.log("========== BREVO ERROR ==========");
-console.log(err);
-console.log(err.response);
-console.log(err.response?.body);
-console.log("================================");
+        console.log("SERVER ERROR:", err);
 
-res.status(500).json({
-    success: false,
-    error: JSON.stringify(err)
-});
-
-    }
-
-});
-
-app.post("/test-email", async (req, res) => {
-
-    try {
-
-        let sendSmtpEmail = new Brevo.SendSmtpEmail();
-
-        sendSmtpEmail.subject = "MG E-Sport Test Email";
-
-        sendSmtpEmail.sender = {
-            name: "MG E-Sport",
-            email: process.env.BREVO_SENDER_EMAIL
-        };
-
-        sendSmtpEmail.to = [
-            {
-                email: process.env.BREVO_SENDER_EMAIL
-            }
-        ];
-
-        sendSmtpEmail.htmlContent =
-        "<h2>🎉 Brevo is working successfully.</h2>";
-
-        await apiInstance.sendTransacEmail(sendSmtpEmail);
-
-        res.json({
-            success: true
-        });
-
-    } catch (err) {
-
-        console.log(err);
-
-        res.status(500).json({
+        return res.status(500).json({
             success: false,
             error: err.message
         });
@@ -119,5 +93,5 @@ app.post("/test-email", async (req, res) => {
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
-    console.log(`✅ Server Running on Port ${PORT}`);
+    console.log(`✅ Server Running On Port ${PORT}`);
 });
