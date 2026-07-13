@@ -68,6 +68,47 @@ app.post("/send-otp", async (req, res) => {
 
 });
 
+app.post("/test-email", async (req, res) => {
+
+    try {
+
+        let sendSmtpEmail = new Brevo.SendSmtpEmail();
+
+        sendSmtpEmail.subject = "MG E-Sport Test Email";
+
+        sendSmtpEmail.sender = {
+            name: "MG E-Sport",
+            email: process.env.BREVO_SENDER_EMAIL
+        };
+
+        sendSmtpEmail.to = [
+            {
+                email: process.env.BREVO_SENDER_EMAIL
+            }
+        ];
+
+        sendSmtpEmail.htmlContent =
+        "<h2>🎉 Brevo is working successfully.</h2>";
+
+        await apiInstance.sendTransacEmail(sendSmtpEmail);
+
+        res.json({
+            success: true
+        });
+
+    } catch (err) {
+
+        console.log(err);
+
+        res.status(500).json({
+            success: false,
+            error: err.message
+        });
+
+    }
+
+});
+
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
