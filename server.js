@@ -10,6 +10,8 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+const otpStore = {};
+
 console.log("API =", process.env.BREVO_API_KEY ? "Loaded" : "Missing");
 console.log("EMAIL =", process.env.BREVO_SENDER_EMAIL);
 
@@ -22,6 +24,11 @@ app.post("/send-otp", async (req, res) => {
     try {
 
         const { email, otp } = req.body;
+
+        otpStore[email] = {
+    otp: otp,
+    expire: Date.now() + 5 * 60 * 1000
+};
 
         const response = await fetch(
             "https://api.brevo.com/v3/smtp/email",
@@ -87,6 +94,47 @@ app.post("/send-otp", async (req, res) => {
         });
 
     }
+
+});
+
+app.post("/verify-otp", (req, res) => {
+
+    const { email, otp } = req.body;
+
+    if (!otpStore[email]) {
+
+        return res.json({
+            success: false,
+            message: "OTP Not Found"
+        });
+
+    }
+
+    if (Date.now() > otpStore[email].expire) {
+
+        delete otpStore[email];
+
+        return res.json({
+            success: false,
+            message: "OTP Expired"
+        });
+
+    }
+
+    if (otpStore[email].otp !== otp) {
+
+        return res.json({
+            success: false,
+            message: "Invalid OTP"
+        });
+
+    }
+
+    delete otpStore[email];
+
+    return res.json({
+        success: true
+    });
 
 });
 
