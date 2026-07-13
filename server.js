@@ -57,12 +57,16 @@ app.post("/send-otp", async (req, res) => {
 
     } catch (err) {
 
-        console.log(err);
+     console.log("========== BREVO ERROR ==========");
+console.log(err);
+console.log(err.response);
+console.log(err.response?.body);
+console.log("================================");
 
-        res.status(500).json({
-            success: false,
-            error: err.message
-        });
+res.status(500).json({
+    success: false,
+    error: JSON.stringify(err)
+});
 
     }
 
