@@ -22,12 +22,16 @@ try {
 
     console.log("✅ Firebase Admin Loaded");
 
-} catch (error) {
+}
 
-    console.log("❌ Firebase Admin Error");
-console.error(error);
-console.error(error.message);
-console.error(error.stack);
+catch (error) {
+
+    console.log("========== FIREBASE ADMIN ERROR ==========");
+    console.log(error);
+    console.log("MESSAGE:", error.message);
+    console.log("CODE:", error.code);
+    console.log("STACK:", error.stack);
+    console.log("=========================================");
 
 }
 
