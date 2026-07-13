@@ -20,3 +20,50 @@ apiInstance.setApiKey(
 app.get("/", (req, res) => {
     res.send("MG E-Sport OTP Server Running ✅");
 });
+
+app.post("/send-otp", async (req, res) => {
+
+    try {
+
+        const { email, otp } = req.body;
+
+        let sendSmtpEmail = new Brevo.SendSmtpEmail();
+
+        sendSmtpEmail.subject = "MG E-Sport OTP Verification";
+
+        sendSmtpEmail.sender = {
+            name: "MG E-Sport",
+            email: process.env.BREVO_SENDER_EMAIL
+        };
+
+        sendSmtpEmail.to = [
+            {
+                email: email
+            }
+        ];
+
+        sendSmtpEmail.htmlContent = `
+        <h2>MG E-Sport</h2>
+        <p>Your OTP is:</p>
+        <h1>${otp}</h1>
+        <p>This OTP is valid for 5 minutes.</p>
+        `;
+
+        await apiInstance.sendTransacEmail(sendSmtpEmail);
+
+        res.json({
+            success: true
+        });
+
+    } catch (err) {
+
+        console.log(err);
+
+        res.status(500).json({
+            success: false,
+            error: err.message
+        });
+
+    }
+
+});
