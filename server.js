@@ -25,7 +25,9 @@ try {
 } catch (error) {
 
     console.log("❌ Firebase Admin Error");
-    console.log(error);
+console.error(error);
+console.error(error.message);
+console.error(error.stack);
 
 }
 
