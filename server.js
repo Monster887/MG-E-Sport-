@@ -58,19 +58,18 @@ app.post("/send-otp", async (req, res) => {
 const { email, otp } = req.body;
 
 if (!email || !otp) {
-
     return res.status(400).json({
         success: false,
         message: "Email and OTP are required"
     });
-
 }
 
+// Check if email exists in Firebase
 try {
 
     await admin.auth().getUserByEmail(email);
 
-catch (e) {
+} catch (e) {
 
     if (e.code === "auth/user-not-found") {
 
@@ -86,7 +85,7 @@ catch (e) {
 }
 
 otpStore[email] = {
-    otp: otp,
+    otp,
     expire: Date.now() + 5 * 60 * 1000
 };
 
