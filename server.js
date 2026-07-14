@@ -56,7 +56,16 @@ app.post("/send-otp", async (req, res) => {
     try {
 
         const { email, otp } = req.body;
+        
+        if (!email || !otp) {
 
+    return res.status(400).json({
+        success: false,
+        message: "Email and OTP are required"
+    });
+
+}
+        
         otpStore[email] = {
     otp: otp,
     expire: Date.now() + 5 * 60 * 1000
@@ -162,11 +171,82 @@ app.post("/verify-otp", (req, res) => {
 
     }
 
-    delete otpStore[email];
+  verifiedUsers[email] = true;
 
-    return res.json({
-        success: true
+delete otpStore[email];
+
+return res.json({
+    success: true
+});
+
+});
+
+app.post("/reset-password", async (req, res) => {
+     
+     if (!admin.apps.length) {
+
+    return res.status(500).json({
+        success: false,
+        message: "Firebase Admin Not Loaded"
     });
+
+}
+     
+    try {
+
+        const { email, password } = req.body;
+        
+        if (!email) {
+
+    return res.status(400).json({
+        success: false,
+        message: "Email is required"
+    });
+
+}
+        
+        if (!password || password.length < 6) {
+
+    return res.status(400).json({
+        success: false,
+        message: "Password must be at least 6 characters"
+    });
+
+}
+        
+        if (!verifiedUsers[email]) {
+
+    return res.status(403).json({
+        success: false,
+        message: "OTP Verification Required"
+    });
+
+}
+
+        const user = await admin.auth().getUserByEmail(email);
+
+        await admin.auth().updateUser(user.uid, {
+            password: password
+        });
+
+        delete verifiedUsers[email];
+
+        return res.json({
+            success: true,
+            message: "Password Updated Successfully"
+        });
+
+    } catch (error) {
+
+        console.log("RESET PASSWORD ERROR");
+        console.log(error);
+
+        return res.status(500).json({
+            success: false,
+            message: error.message
+        });
+
+    }
 
 });
 
