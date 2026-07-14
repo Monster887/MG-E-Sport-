@@ -55,9 +55,9 @@ app.post("/send-otp", async (req, res) => {
 
     try {
 
-        const { email, otp } = req.body;
-        
-        if (!email || !otp) {
+const { email, otp } = req.body;
+
+if (!email || !otp) {
 
     return res.status(400).json({
         success: false,
@@ -65,8 +65,27 @@ app.post("/send-otp", async (req, res) => {
     });
 
 }
-        
-        otpStore[email] = {
+
+try {
+
+    await admin.auth().getUserByEmail(email);
+
+catch (e) {
+
+    if (e.code === "auth/user-not-found") {
+
+        return res.status(404).json({
+            success: false,
+            message: "This email is not registered."
+        });
+
+    }
+
+    throw e;
+
+}
+
+otpStore[email] = {
     otp: otp,
     expire: Date.now() + 5 * 60 * 1000
 };
